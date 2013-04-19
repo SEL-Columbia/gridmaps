@@ -42,25 +42,12 @@ body {
 <script type="text/javascript" language="javascript">
 // initialize the map
 var map = new L.Map('gridMap');
-GM.fromConfig('config.json', function(system) {
-    map.setView(new L.LatLng(GM.LAT, GM.LNG), 11);
-    sys = system;
-    GM.render(system, map);
-});
 
-GM.render = function(system, map) {
-    var color = 'red';
-    _.each(system.lines, function(line) {
-        var l = new L.Polyline(
-            _.map(line.nodes, function(n) {
-                return new L.LatLng(n.lat, n.lng);
-            }),
-            {color: color, opacity: 1}); // REPLACE by map from tags : leafletoptions
-        console.log(line);
-        l.bindPopup(line.tags.voltage);
-        map.addLayer(l);
-    });
-}
+GM.fromConfig('config.json', function(network) {
+    map.setView(new L.LatLng(GM.LAT, GM.LNG), 11);
+    //console.log(network.toLeafletObject());
+    map.addLayer(network.toLeafletObject());
+});
 
 if(GM.TILE_SOURCE) {
         if (GM.WAX) {

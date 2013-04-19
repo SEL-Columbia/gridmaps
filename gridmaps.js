@@ -1,9 +1,63 @@
-var _ = _ || require("underscore");
-var $ = $ || require("jquery");
-var kdTree = kdTree || require('./lib/kdtree/src/node/kdTree.js').kdTree;
-
 var GM = GM || {};
 
+/* A power line */
+GM.PowerLine = function(way) {
+    if(way.tags.power == 'line') {
+        this.nodes = way.nodes;
+        this.usr = way.usr;
+        this.id = way.id;
+        this.tags = way.tags;
+    };
+};
+
+/* The string representation of this object. Used in the map popup. */
+GM.PowerLine.prototype.toString = function() {
+    return _.template('<%= tags.voltage %> <%= tags.ref %> line <br/>' +
+                      'Operated by <%= tags.operator %>',
+                      this);
+};
+
+/* The leaflet object representation of this power line */
+GM.PowerLine.prototype.toLeafletObject = function() {
+    var color = 'red';
+    var toLeafletOptions = function(line) {
+        var t = line.tags;
+        if (t.operator === 'PLN' && t.ref === 'MV' && t.voltage === '20 kV') {
+            return {color: 'red', opacity: 1};
+        } else {
+            return {color: 'grey', opacity: 1};
+        }
+    };
+
+    var l = new L.Polyline(
+        _.map(this.nodes, function(n) { return new L.LatLng(n.lat, n.lng); }),
+        toLeafletOptions(this)
+    );
+    l.bindPopup(this.toString());
+    return l;
+};
+
+/* A Grid Network -- its got some power lines */
+GM.GridNetwork = function(ways) {
+    this.lines = _(ways).chain()
+                .filter(function (w) { return w.tags.power == 'line'; })
+                .map(function(w) { return new GM.PowerLine(w); })
+                .value();
+    console.log(this.lines);
+};
+
+/* The leaflet object representation of this grid network. */
+GM.GridNetwork.prototype.toLeafletObject = function() {
+    var lg = new L.LayerGroup();
+    _.each(
+    this.lines, function(line) {
+        lg.addLayer(line.toLeafletObject());
+    });
+    return lg;
+};
+
+/* GLOBAL FUNCTION -- read the config_file located at config_path, load up the appropriate
+ * data, and call callback after constructing the GridNetwork */
 GM.fromConfig = function(config_path, cb) {
     $.getJSON(config_path, {}, function(conf) {
         // mix in conf options into GM
@@ -17,6 +71,7 @@ GM.fromConfig = function(config_path, cb) {
     });
 };
 
+/* Construct a GridNetwork object from some OSM XML data */
 GM.fromOSM = function (osmXML) {
     var nodes = {},
         ways = {},
@@ -52,9 +107,7 @@ GM.fromOSM = function (osmXML) {
                                tags: tagObj
         };
     });
-    return new GM.System(ways);
+    /* Step 3, create a grid network out of constructed objects */
+    return new GM.GridNetwork(ways);
 }
 
-GM.System = function(ways) {
-    this.lines = ways;
-};
