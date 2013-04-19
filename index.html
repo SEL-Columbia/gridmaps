@@ -34,7 +34,6 @@ body {
 <script src="lib/underscore-min.js"></script>
 <script src="lib/leaflet/leaflet.js"></script>
 <script src="lib/wax.leaf.min.js"></script>
-<script src="lib/kdtree/src/web/kdTree.js"></script>
 <script src="gridmaps.js"></script>
 </head>
 <body>
@@ -47,9 +46,11 @@ GM.fromConfig('config.json', function(network) {
     map.setView(new L.LatLng(GM.LAT, GM.LNG), 11);
     //console.log(network.toLeafletObject());
     map.addLayer(network.toLeafletObject());
+    addTiles(GM);
 });
 
-if(GM.TILE_SOURCE) {
+function addTiles(GM) { 
+    if(GM.TILE_SOURCE) {
         if (GM.WAX) {
             wax.tilejson(GM.TILE_SOURCE, function(tilejson) {
                 map.addLayer(new wax.leaf.connector(tilejson));
@@ -61,7 +62,8 @@ if(GM.TILE_SOURCE) {
             });
             map.addLayer(tiles);
         }
-}
+    }
+};
 
 </script>
 </body>

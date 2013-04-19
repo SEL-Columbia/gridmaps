@@ -43,7 +43,6 @@ GM.GridNetwork = function(ways) {
                 .filter(function (w) { return w.tags.power == 'line'; })
                 .map(function(w) { return new GM.PowerLine(w); })
                 .value();
-    console.log(this.lines);
 };
 
 /* The leaflet object representation of this grid network. */
