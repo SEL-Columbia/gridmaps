@@ -1,0 +1,82 @@
+<html>
+<head>
+    <title> Grid Maps | Modi Research Group</title>
+<link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+<!--[if lte IE 8]>
+    <link rel="stylesheet" href="lib/leaflet/leaflet.ie.css" />
+<![endif]-->
+<style>
+body {
+  margin:0;
+}
+#error {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 200px;
+  background-color: black;
+  color: #00ff00;
+  width: 100%;
+  overflow: auto;
+}
+#errorLog li:hover {
+  background-color: #111;
+  color: red;
+  cursor: pointer;
+}
+#routepicker {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+</style>
+<script src="lib/jquery-1.7.2.min.js"></script>
+<script src="lib/underscore-min.js"></script>
+<script src="lib/leaflet/leaflet.js"></script>
+<script src="lib/wax.leaf.min.js"></script>
+<script src="lib/kdtree/src/web/kdTree.js"></script>
+<script src="gridmaps.js"></script>
+</head>
+<body>
+<div id="gridMap" style="width: 100%; height: 100%">Loading ...</div>
+<script type="text/javascript" language="javascript">
+// initialize the map
+var map = new L.Map('gridMap');
+GM.fromConfig('config.json', function(system) {
+    map.setView(new L.LatLng(GM.LAT, GM.LNG), 11);
+    sys = system;
+    GM.render(system, map);
+});
+
+GM.render = function(system, map) {
+    var color = 'red';
+    _.each(system.lines, function(line) {
+        var l = new L.Polyline(
+            _.map(line.nodes, function(n) {
+                return new L.LatLng(n.lat, n.lng);
+            }),
+            {color: color, opacity: 1}); // REPLACE by map from tags : leafletoptions
+        console.log(line);
+        l.bindPopup(line.tags.voltage);
+        map.addLayer(l);
+    });
+}
+
+if(GM.TILE_SOURCE) {
+        if (GM.WAX) {
+            wax.tilejson(GM.TILE_SOURCE, function(tilejson) {
+                map.addLayer(new wax.leaf.connector(tilejson));
+            });
+        } else {
+            var tiles = new L.TileLayer(GM.TILE_SOURCE, {
+                attribution: GM.ATTRIBUTION,
+                maxZoom: 18
+            });
+            map.addLayer(tiles);
+        }
+}
+
+</script>
+</body>
+</html>
+

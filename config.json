@@ -1,0 +1,10 @@
+{
+    "API_URL": "ambon.osm",
+    "GET_OR_POST": "GET",
+    "WAX": true,
+    "TILE_SOURCE": "http://a.tiles.mapbox.com/v3/modilabs.map-p543gvbh.jsonp",
+    "ATTRIBUTION": "Tiles Courtesy of <a href=\"http://www.mapquest.com/\" target=\"_blank\">MapBox</a>",
+    "LNG": 128.2,
+    "LAT": -3.6
+}
+
