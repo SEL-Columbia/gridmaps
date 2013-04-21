@@ -28,21 +28,32 @@ PLN Grid Maps
 <script type="text/javascript" language="javascript">
 // initialize the map
 var map = new L.Map('gridMap');
+map.setView(new L.LatLng(-3.6, 128.2), 11);
 
 var thisGM; // global variable to facilitate debugging
 
-// fromConfig checks config.json, pings the right url,
-// and calls the below function once data has been converted to network 
-GM.fromConfig('config.json', function(network) {
+function onNetworkLoad(network) {
     thisGM = network; // global variable to facilitate debugging
-    map.setView(new L.LatLng(GM.LAT, GM.LNG), 11); // from Config -- change?
 
     map.addLayer(network.toLeafletObject());
     addTiles(GM);
-});
+};
+
+// fromConfig checks config.json, pings the right url,
+// and calls the below function once data has been converted to network 
+GM.fromConfig('config.json', onNetworkLoad);
 
 $(function() {
     $('#reload').click(function () {
+        var bounds = map.getBounds();
+        var url = 'http://gridmaps.modilabs.org/api/0.6/map?bbox=' +
+            bounds._southWest.lng + "," + bounds._southWest.lat + "," +
+            bounds._northEast.lng + "," + bounds._northEast.lat;
+        $.ajax({url: url, type: "GET", dataType: "text",
+                success: function(res) {
+                    onNetworkLoad(GM.fromOSM(res)); 
+                }
+        });
         console.log('reloading yet to be implemented');
     });
     $('#download').click(function () {
