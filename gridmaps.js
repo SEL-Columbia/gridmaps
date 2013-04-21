@@ -46,7 +46,7 @@ GM.PowerLine.prototype.toKML = function(style) {
         '<% _.each(tags, function(v, k) { %><%= k %> = <%= v %> <br/> <% }) %>' +
         ']]></description>' +
         '\n  <LineString><coordinates>' +
-        '<% _.each(nodes, function(nd) { %><%= nd.lat %>,<%= nd.lng %>,0.0 <% }) %>' +
+        '<% _.each(nodes, function(nd) { %><%= nd.lng %>,<%= nd.lat %>,0.0 <% }) %>' +
         '\n  </coordinates></LineString>' +
         '\n  <styleUrl>' + style + '</styleUrl>'+
         '\n</Placemark>';
