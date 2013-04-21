@@ -42,9 +42,14 @@ body {
 // initialize the map
 var map = new L.Map('gridMap');
 
+var thisGM; // global variable to facilitate debugging
+
+// fromConfig checks config.json, pings the right url,
+// and calls the below function once data has been converted to network 
 GM.fromConfig('config.json', function(network) {
-    map.setView(new L.LatLng(GM.LAT, GM.LNG), 11);
-    //console.log(network.toLeafletObject());
+    thisGM = network; // global variable to facilitate debugging
+    map.setView(new L.LatLng(GM.LAT, GM.LNG), 11); // from Config -- change?
+
     map.addLayer(network.toLeafletObject());
     addTiles(GM);
 });
