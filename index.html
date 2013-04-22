@@ -9,44 +9,60 @@
 body {
   margin:0;
 }
-#error {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  height: 200px;
-  background-color: black;
-  color: #00ff00;
-  width: 100%;
-  overflow: auto;
-}
-#errorLog li:hover {
-  background-color: #111;
-  color: red;
-  cursor: pointer;
-}
-#routepicker {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
 </style>
 <script src="lib/jquery-1.7.2.min.js"></script>
 <script src="lib/underscore-min.js"></script>
 <script src="lib/leaflet/leaflet.js"></script>
 <script src="lib/wax.leaf.min.js"></script>
+<script src="lib/blob/BlobBuilder.min.js"></script>
+<script src="lib/filesaver/FileSaver.min.js"></script>
 <script src="gridmaps.js"></script>
 </head>
 <body>
+<div id="title" style="position:absolute;top:2;left:80;font-family:'Century Gothic';font-size:60;z-index:999">
+PLN Grid Maps
+</div>
+<button id="reload" style="position:absolute;top:80;left:80;font-family:'Century Gothic';font-size:20;z-index:999"> Re-load Data </button>
+<button id="download" style="position:absolute;top:80;left:240;font-family:'Century Gothic';font-size:20;z-index:999"> Download KML </button>
 <div id="gridMap" style="width: 100%; height: 100%">Loading ...</div>
 <script type="text/javascript" language="javascript">
 // initialize the map
 var map = new L.Map('gridMap');
+map.setView(new L.LatLng(-3.6, 128.2), 11);
 
-GM.fromConfig('config.json', function(network) {
-    map.setView(new L.LatLng(GM.LAT, GM.LNG), 11);
-    //console.log(network.toLeafletObject());
+var thisGM; // global variable to facilitate debugging
+
+function onNetworkLoad(network) {
+    thisGM = network; // global variable to facilitate debugging
+
     map.addLayer(network.toLeafletObject());
     addTiles(GM);
+};
+
+// fromConfig checks config.json, pings the right url,
+// and calls the below function once data has been converted to network 
+GM.fromConfig('config.json', onNetworkLoad);
+
+$(function() {
+    $('#reload').click(function () {
+        var bounds = map.getBounds();
+        var url = 'http://gridmaps.modilabs.org/api/0.6/map?bbox=' +
+            bounds._southWest.lng + "," + bounds._southWest.lat + "," +
+            bounds._northEast.lng + "," + bounds._northEast.lat;
+        $.ajax({url: url, type: "GET", dataType: "text",
+                success: function(res) {
+                    onNetworkLoad(GM.fromOSM(res)); 
+                }
+        });
+        console.log('reloading yet to be implemented');
+    });
+    $('#download').click(function () {
+        var blob = new BlobBuilder();
+        blob.append(thisGM.toKML());
+        var output = blob.getBlob('text/html;charset=UTF-8')
+        saveAs(output, "PLNGridExport.kml");
+        console.log('downloading');
+    });
 });
 
 function addTiles(GM) { 

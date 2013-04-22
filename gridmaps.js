@@ -37,6 +37,22 @@ GM.PowerLine.prototype.toLeafletObject = function() {
     return l;
 };
 
+/* KML output of a powerline. */
+GM.PowerLine.prototype.toKML = function(style) {
+    var template =
+        '\n<Placemark>' +
+        '\n  <name> <%= id %> </name>' +
+        '\n  <description><![CDATA[' +
+        '<% _.each(tags, function(v, k) { %><%= k %> = <%= v %> <br/> <% }) %>' +
+        ']]></description>' +
+        '\n  <LineString><coordinates>' +
+        '<% _.each(nodes, function(nd) { %><%= nd.lng %>,<%= nd.lat %>,0.0 <% }) %>' +
+        '\n  </coordinates></LineString>' +
+        '\n  <styleUrl>' + style + '</styleUrl>'+
+        '\n</Placemark>';
+    return _.template(template, this);
+};
+
 /* A Grid Network -- its got some power lines */
 GM.GridNetwork = function(ways) {
     this.lines = _(ways).chain()
@@ -53,6 +69,19 @@ GM.GridNetwork.prototype.toLeafletObject = function() {
         lg.addLayer(line.toLeafletObject());
     });
     return lg;
+};
+
+/* KML output of a whole grid network */
+GM.GridNetwork.prototype.toKML = function() {
+    var template =
+        '<?xml version="1.0" encoding="UTF-8"?>' +
+        '\n<Document>' +
+        '<Style id="style0"><LineStyle><color>fe008526</color>' +
+            '<width>2</width></LineStyle></Style>' +
+        '\n<Folder>' +
+        '<% _.each(lines, function(ln) { %> <%= ln.toKML("#style0") %> <% }) %>' +
+        '\n</Folder></Document>';
+    return _.template(template, this);
 };
 
 /* GLOBAL FUNCTION -- read the config_file located at config_path, load up the appropriate
@@ -77,10 +106,10 @@ GM.fromOSM = function (osmXML) {
         $osmXML = $(osmXML);
     var tagToObj = function(tag) {
         tags = {};
-        _.each(tag, function (t) { 
+        _.each(tag, function (t) {
             var $t = $(t);
             tags[$t.attr('k')] = $t.attr('v'); });
-        return tags; 
+        return tags;
     };
     /* Step 1: process all the returned nodes; put them in local nodes obj */
     _.each($osmXML.find('node'), function(n) {
@@ -88,7 +117,7 @@ GM.fromOSM = function (osmXML) {
         var tagObj = tagToObj($n.find('tag'));
         nodes[$n.attr('id')] = {id: $n.attr('id'),
                                 lat: $n.attr('lat'),
-                                lng: $n.attr('lon'), 
+                                lng: $n.attr('lon'),
                                 usr: $n.attr('user'),
                                 tag: tagObj,
         };
